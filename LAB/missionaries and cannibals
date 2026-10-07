@@ -1,0 +1,86 @@
+from collections import deque
+
+def is_valid(m_left, c_left):
+    m_right = 3 - m_left
+    c_right = 3 - c_left
+
+    # Left bank
+    if m_left > 0 and c_left > m_left:
+        return False
+
+    # Right bank
+    if m_right > 0 and c_right > m_right:
+        return False
+
+    return True
+
+
+def solve():
+    start = (3, 3, 0)  # missionaries, cannibals, boat side
+    goal = (0, 0, 1)
+
+    queue = deque([(start, [])])
+    visited = {start}
+
+    # Possible boat combinations
+    moves = [
+        (1, 0),
+        (2, 0),
+        (0, 1),
+        (0, 2),
+        (1, 1)
+    ]
+
+    while queue:
+        state, path = queue.popleft()
+
+        m_left, c_left, boat = state
+
+        path = path + [state]
+
+        if state == goal:
+            return path
+
+        for m, c in moves:
+
+            if boat == 0:  # Boat on left
+                new_m = m_left - m
+                new_c = c_left - c
+                new_boat = 1
+            else:  # Boat on right
+                new_m = m_left + m
+                new_c = c_left + c
+                new_boat = 0
+
+            if 0 <= new_m <= 3 and 0 <= new_c <= 3:
+                new_state = (new_m, new_c, new_boat)
+
+                if is_valid(new_m, new_c) and new_state not in visited:
+                    visited.add(new_state)
+                    queue.append((new_state, path))
+
+    return None
+
+
+solution = solve()
+
+if solution:
+    print("Solution:\n")
+
+    for state in solution:
+        m, c, boat = state
+
+        if boat == 0:
+            side = "Left"
+        else:
+            side = "Right"
+
+        print(
+            "Left: M =", m,
+            "C =", c,
+            "| Boat:", side,
+            "| Right: M =", 3 - m,
+            "C =", 3 - c
+        )
+else:
+    print("No solution")
