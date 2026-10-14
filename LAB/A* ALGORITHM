@@ -1,0 +1,59 @@
+import heapq
+
+def astar(graph, heuristic, start, goal):
+    # Priority queue entries: (f, g, node, path)
+    pq = [(heuristic[start], 0, start, [start])]
+    best_cost = {start: 0}
+
+    while pq:
+        f, g, node, path = heapq.heappop(pq)
+
+        if g != best_cost.get(node):
+            continue
+
+        if node == goal:
+            return path, g
+
+        for neighbor, cost in graph[node]:
+            new_g = g + cost
+
+            if new_g < best_cost.get(neighbor, float('inf')):
+                best_cost[neighbor] = new_g
+                new_f = new_g + heuristic[neighbor]
+
+                heapq.heappush(
+                    pq,
+                    (new_f, new_g, neighbor, path + [neighbor])
+                )
+
+    return None, float('inf')
+
+
+# Input graph
+n = int(input("Enter number of vertices: "))
+graph = {i: [] for i in range(n)}
+
+e = int(input("Enter number of edges: "))
+print("Enter edges as: source destination cost")
+
+for _ in range(e):
+    u, v, cost = map(int, input().split())
+    graph[u].append((v, cost))
+    graph[v].append((u, cost))
+
+print("Enter heuristic values for each vertex:")
+heuristic = {}
+
+for i in range(n):
+    heuristic[i] = int(input(f"h({i}) = "))
+
+start = int(input("Enter start vertex: "))
+goal = int(input("Enter goal vertex: "))
+
+path, cost = astar(graph, heuristic, start, goal)
+
+if path:
+    print("Optimal path:", " -> ".join(map(str, path)))
+    print("Total cost:", cost)
+else:
+    print("No path found")
