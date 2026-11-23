@@ -1,0 +1,93 @@
+# Decision Tree using ID3 Algorithm
+
+import math
+from collections import Counter
+
+# Training dataset
+data = [
+    ['Sunny', 'No'],
+    ['Sunny', 'No'],
+    ['Overcast', 'Yes'],
+    ['Rainy', 'Yes'],
+    ['Rainy', 'Yes'],
+    ['Overcast', 'Yes'],
+    ['Sunny', 'Yes'],
+    ['Rainy', 'No']
+]
+
+def entropy(rows):
+    labels = [row[-1] for row in rows]
+    total = len(labels)
+    counts = Counter(labels)
+
+    result = 0
+    for count in counts.values():
+        p = count / total
+        result -= p * math.log2(p)
+
+    return result
+
+def build_tree(rows):
+    labels = [row[-1] for row in rows]
+
+    # If all labels are same
+    if len(set(labels)) == 1:
+        return labels[0]
+
+    # If no attributes remain
+    if not rows or not rows[0][:-1]:
+        return Counter(labels).most_common(1)[0][0]
+
+    best_attribute = None
+    best_gain = -1
+
+    # Find best attribute
+    for attribute in set(row[0] for row in rows):
+        groups = {}
+
+        for row in rows:
+            groups.setdefault(row[0], []).append(row)
+
+        weighted_entropy = sum(
+            len(group) / len(rows) * entropy(group)
+            for group in groups.values()
+        )
+
+        gain = entropy(rows) - weighted_entropy
+
+        if gain > best_gain:
+            best_gain = gain
+            best_attribute = attribute
+
+    tree = {}
+
+    for value in set(row[0] for row in rows):
+        subset = [row[1:] for row in rows
+                  if row[0] == value]
+
+        tree[value] = build_tree(subset)
+
+    return {best_attribute: tree}
+
+# Prediction
+def predict(tree, value):
+    if not isinstance(tree, dict):
+        return tree
+
+    attribute = next(iter(tree))
+    branches = tree[attribute]
+
+    if value in branches:
+        return predict(branches[value], value)
+
+    return "Unknown"
+
+# Build and display tree
+tree = build_tree(data)
+
+print("Decision Tree:")
+print(tree)
+
+weather = input("Enter weather (Sunny/Rainy/Overcast): ")
+
+print("Prediction:", predict(tree, weather))
